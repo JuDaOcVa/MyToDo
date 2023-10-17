@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="mikado_yellow">#fec601</color>
+    <color name="pumpkin">#ea7317</color>
+    <color name="picton_blue">#3DA5D9</color>
+    <color name="green_blue">#2364AA</color>
+    <color name="verdigris">#73BFB8</color>
+    <color name="green">#4CAF50</color>
+</resources>
