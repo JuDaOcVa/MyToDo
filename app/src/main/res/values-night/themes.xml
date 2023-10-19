@@ -1,7 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.MyToDo" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Base.Theme.MyToDo" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/primary</item>
     </style>
+
+    <style name="Theme.MyToDo" parent="Base.Theme.MyToDo" />
+
+    <style name="Theme.Personalized" parent="Theme.MaterialComponents.DayNight">
+        <item name="colorControlActivated">@color/primary</item>
+        <item name="placeholderTextAppearance">@color/primary</item>
+        <item name="hintTextColor">@color/primary</item>
+    </style>
+
+    <color name="primary">#9C27B0</color>
 </resources>

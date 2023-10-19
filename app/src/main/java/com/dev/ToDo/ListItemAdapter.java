@@ -92,6 +92,7 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView idTextView;
         public TextView titleTextView;
         public TextView descriptionTextView;
         public ImageButton editImageButton;
@@ -100,6 +101,7 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
 
         public ViewHolder(View itemView) {
             super(itemView);
+            idTextView = itemView.findViewById(R.id.textviewId);
             titleTextView = itemView.findViewById(R.id.textviewTitle);
             descriptionTextView = itemView.findViewById(R.id.textviewDescription);
             editImageButton = itemView.findViewById(R.id.btn_edit);

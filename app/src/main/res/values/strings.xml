@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">My To Do</string>
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="contentEditButton">Edit Task Button</string>
     <string name="contentDeleteButton">Delete Task Button</string>
+    <string name="contentAddButton">Add Task Button</string>
+    <string name="textTitleEditText">Title</string>
+    <string name="textDescriptionEditText">Description</string>
+    <string name="save">Save</string>
 </resources>

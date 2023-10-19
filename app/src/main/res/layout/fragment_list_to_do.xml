@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.dev.ToDo.ListToDoFragment">
+    tools:context=".ListToDoFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerList"
@@ -23,8 +23,9 @@
         android:layout_margin="@dimen/_10sdp"
         android:background="@drawable/rounded_button"
         android:backgroundTint="@color/primary"
-        android:src="@drawable/ic_add"
+        android:contentDescription="@string/contentAddButton"
         android:elevation="@dimen/_15sdp"
+        android:src="@drawable/ic_add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -1,9 +1,12 @@
 package com.dev.ToDo;
 
+import android.app.Dialog;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -15,6 +18,7 @@ import com.dev.Db.DatabaseManager;
 import com.dev.Models.ListItem;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItemActionListener, ListItemAdapter.OnCheckBoxChangeListener {
     private ArrayList<ListItem> itemList;
@@ -24,11 +28,14 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
     public void onEditClick(int position) {
         // Lógica para editar un elemento en la lista
         // Puedes abrir un diálogo de edición o una nueva actividad
-        System.out.println("EDITAR RECIBE POS: "+position);
+        System.out.println("EDITAR RECIBE POS: " + position);
+        System.out.println("EDITAR ID: " + itemList.get(position).getId());
     }
 
     @Override
     public void onDeleteClick(int position) {
+        System.out.println("ELIMINAR RECIBE POS: " + position);
+        System.out.println("ELIMINAR ID: " + itemList.get(position).getId());
         DatabaseManager dbManager = new DatabaseManager(requireContext());
         dbManager.open();
         ListItem listItem = itemList.get(position);
@@ -41,6 +48,13 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list_to_do, container, false);
+        ImageButton addButton = (ImageButton) view.findViewById(R.id.btn_add);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openCustomDialog();
+            }
+        });
 //        itemList = loadItemListFromDatabase();
         ArrayList<ListItem> list = new ArrayList<>();
         ListItem item = new ListItem(1, "TAREA 1", "Realizar tarea 1", 0, "13-10-2023", "12:18:00");
@@ -55,7 +69,14 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         return view;
     }
 
-    /*private ArrayList<ListItem> loadItemListFromDatabase() {
+    private void openCustomDialog() {
+        Dialog dialog = new Dialog(requireContext());
+        dialog.setContentView(R.layout.dialog_create_task);
+        Objects.requireNonNull(dialog.getWindow()).setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.show();
+    }
+
+    private ArrayList<ListItem> loadItemListFromDatabase() {
         ArrayList<ListItem> itemList = new ArrayList<>();
         DatabaseManager dbManager = new DatabaseManager(requireContext());
         dbManager.open();
@@ -77,7 +98,7 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         }
         dbManager.close();
         return itemList;
-    }*/
+    }
 
     @NonNull
     @Override
