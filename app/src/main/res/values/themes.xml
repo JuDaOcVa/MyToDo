@@ -7,7 +7,7 @@
 
     <style name="Theme.MyToDo" parent="Base.Theme.MyToDo" />
 
-    <style name="Theme.Personalized" parent="Theme.MaterialComponents.DayNight">
+    <style name="Theme.Personalized" parent="Theme.MaterialComponents.Light">
         <item name="colorControlActivated">@color/primary</item>
         <item name="placeholderTextAppearance">@color/primary</item>
         <item name="hintTextColor">@color/primary</item>
