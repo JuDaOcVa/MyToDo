@@ -1,13 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.MyToDo" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your light theme here. -->
+    <style name="Theme.MyToDo" parent="Theme.Personalized" />
+
+    <style name="Theme.Personalized" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
-    </style>
-
-    <style name="Theme.MyToDo" parent="Base.Theme.MyToDo" />
-
-    <style name="Theme.Personalized" parent="Theme.MaterialComponents.Light">
         <item name="colorControlActivated">@color/primary</item>
         <item name="placeholderTextAppearance">@color/primary</item>
         <item name="hintTextColor">@color/primary</item>
