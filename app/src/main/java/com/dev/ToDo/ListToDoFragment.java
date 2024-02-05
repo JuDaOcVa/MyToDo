@@ -2,6 +2,7 @@ package com.dev.ToDo;
 
 import android.app.Dialog;
 import android.database.Cursor;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +12,11 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.viewmodel.CreationExtras;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -45,10 +49,10 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         System.out.println("ELIMINAR ID: " + itemList.get(position).getId());
         /*DatabaseManager dbManager = new DatabaseManager();
         dbManager.open();*/
-        ListItem listItem = itemList.get(position);
-       // dbManager.delete(listItem.getId());
+        // dbManager.delete(listItem.getId());
         itemList.remove(position);
         adapter.notifyItemRemoved(position);
+        adapter.notifyItemRangeChanged(position, itemList.size());
         //dbManager.close();
     }
 
@@ -135,26 +139,37 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         return super.getDefaultViewModelCreationExtras();
     }
 
-    @Override
     public void onCheckBoxChange(int position, int newCheck) {
-//        DatabaseManager dbManager = new DatabaseManager(requireContext());
-//        dbManager.open();
-//        ListItem listItem = itemList.get(position);
-//        dbManager.updateItemState(listItem);
-//        adapter.notifyDataSetChanged();
-//        dbManager.close();
+        RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(position);
+        if (viewHolder != null) {
+            LinearLayout listItemLayout = viewHolder.itemView.findViewById(R.id.yourLinearLayoutId);
+            int colorPrimary = ContextCompat.getColor(requireContext(), R.color.primary);
+            int colorWhite = ContextCompat.getColor(requireContext(), R.color.white);
+            int alpha = (int) (255 * 0.6);
+            int backgroundColor = (newCheck == 1) ? ColorUtils.setAlphaComponent(colorPrimary, alpha) : colorWhite;
+            GradientDrawable gradientDrawable = new GradientDrawable();
+            gradientDrawable.setCornerRadius(getResources().getDimension(com.intuit.sdp.R.dimen._10sdp));
+            gradientDrawable.setStroke((int) getResources().getDimension(com.intuit.sdp.R.dimen._3sdp), colorPrimary);
+            gradientDrawable.setColor(backgroundColor);
+            listItemLayout.setBackground(gradientDrawable);
+        }
     }
 
     public static void onSaveClick(int position) {
         System.out.println("SAVE====>" + position);
         ListItem listItem;
+        String title = editTextTitle.getText().toString();
+        String description = editTextDescription.getText().toString();
         if (position < 0) {
             System.out.println("ENTRA A GUARDAR DE CERO=======>");
+            listItem = new ListItem(3, title, description, 0, "13-10-2023", "12:18:00");
+            itemList.add(listItem);
+            adapter.notifyDataSetChanged();
         } else {
             System.out.println("ENTRA A GUARDAR UNO CREADO=========>");
             listItem = itemList.get(position);
-            listItem.setTitle(editTextTitle.getText().toString());
-            listItem.setDescription(editTextDescription.getText().toString());
+            listItem.setTitle(title);
+            listItem.setDescription(description);
             itemList.set(position, listItem);
             adapter.notifyItemChanged(position);
         }
