@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -104,6 +105,7 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
             idTextView = itemView.findViewById(R.id.textviewId);
             titleTextView = itemView.findViewById(R.id.textviewTitle);
             descriptionTextView = itemView.findViewById(R.id.textviewDescription);
+            descriptionTextView.setSelected(true);
             editImageButton = itemView.findViewById(R.id.btn_edit);
             deleteImageButton = itemView.findViewById(R.id.btn_delete);
             checkBox = itemView.findViewById(R.id.round_checkbox);

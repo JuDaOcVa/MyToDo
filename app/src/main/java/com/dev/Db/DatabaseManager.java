@@ -13,8 +13,7 @@ public class DatabaseManager {
     private Context context;
     private SQLiteDatabase database;
 
-    public DatabaseManager(Context c) {
-        context = c;
+    public DatabaseManager() {
     }
 
     public DatabaseManager open() throws SQLException {

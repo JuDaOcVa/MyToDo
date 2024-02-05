@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
@@ -22,38 +24,42 @@ import com.dev.Models.ListItem;
 import java.util.ArrayList;
 
 public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItemActionListener, ListItemAdapter.OnCheckBoxChangeListener {
-    private ArrayList<ListItem> itemList;
-    private ListItemAdapter adapter;
+    private static ArrayList<ListItem> itemList;
+    private static ListItemAdapter adapter;
+    public RecyclerView recyclerView;
+    public static EditText editTextTitle;
+    public static EditText editTextDescription;
+    public static Button btnSave;
+    public static ImageButton addButton;
 
     @Override
     public void onEditClick(int position) {
-        // Lógica para editar un elemento en la lista
-        // Puedes abrir un diálogo de edición o una nueva actividad
         System.out.println("EDITAR RECIBE POS: " + position);
         System.out.println("EDITAR ID: " + itemList.get(position).getId());
+        openCustomDialog(position);
     }
 
     @Override
     public void onDeleteClick(int position) {
         System.out.println("ELIMINAR RECIBE POS: " + position);
         System.out.println("ELIMINAR ID: " + itemList.get(position).getId());
-        DatabaseManager dbManager = new DatabaseManager(requireContext());
-        dbManager.open();
+        /*DatabaseManager dbManager = new DatabaseManager();
+        dbManager.open();*/
         ListItem listItem = itemList.get(position);
-        dbManager.delete(listItem.getId());
+       // dbManager.delete(listItem.getId());
         itemList.remove(position);
         adapter.notifyItemRemoved(position);
-        dbManager.close();
+        //dbManager.close();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list_to_do, container, false);
-        ImageButton addButton = (ImageButton) view.findViewById(R.id.btn_add);
+        addButton = (ImageButton) view.findViewById(R.id.btn_add);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openCustomDialog();
+                openCustomDialog(-1);
             }
         });
 //        itemList = loadItemListFromDatabase();
@@ -63,14 +69,14 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         ListItem item2 = new ListItem(2, "TAREA 2", "Realizar tarea 2", 0, "13-10-2023", "12:20:00");
         list.add(1, item2);
         itemList = list;
-        RecyclerView recyclerView = view.findViewById(R.id.recyclerList);
+        recyclerView = view.findViewById(R.id.recyclerList);
         adapter = new ListItemAdapter(requireContext(), itemList, this, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
         recyclerView.setAdapter(adapter);
         return view;
     }
 
-    private void openCustomDialog() {
+    private void openCustomDialog(int pos) {
         Dialog dialog = new Dialog(requireContext());
         dialog.setContentView(R.layout.dialog_create_task);
         Window window = dialog.getWindow();
@@ -81,12 +87,27 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
             layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
             window.setAttributes(layoutParams);
         }
+        btnSave = dialog.findViewById(R.id.btn_save);
+        btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSaveClick(pos);
+                dialog.dismiss();
+            }
+        });
         dialog.show();
+        editTextTitle = dialog.findViewById(R.id.editTextTitle);
+        editTextDescription = dialog.findViewById(R.id.editTextDescription);
+        if (pos >= 0) {
+            ListItem item = itemList.get(pos);
+            editTextTitle.setText(item.getTitle());
+            editTextDescription.setText(item.getDescription());
+        }
     }
 
     private ArrayList<ListItem> loadItemListFromDatabase() {
         ArrayList<ListItem> itemList = new ArrayList<>();
-        DatabaseManager dbManager = new DatabaseManager(requireContext());
+        DatabaseManager dbManager = new DatabaseManager();
         dbManager.open();
         Cursor cursor = dbManager.fetch();
         if (cursor != null) {
@@ -122,5 +143,23 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
 //        dbManager.updateItemState(listItem);
 //        adapter.notifyDataSetChanged();
 //        dbManager.close();
+    }
+
+    public static void onSaveClick(int position) {
+        System.out.println("SAVE====>" + position);
+        ListItem listItem;
+        if (position < 0) {
+            System.out.println("ENTRA A GUARDAR DE CERO=======>");
+        } else {
+            System.out.println("ENTRA A GUARDAR UNO CREADO=========>");
+            listItem = itemList.get(position);
+            listItem.setTitle(editTextTitle.getText().toString());
+            listItem.setDescription(editTextDescription.getText().toString());
+            itemList.set(position, listItem);
+            adapter.notifyItemChanged(position);
+        }
+       /* DatabaseManager dbManager = new DatabaseManager();
+        dbManager.open();
+        dbManager.close();*/
     }
 }
