@@ -7,4 +7,5 @@
     <string name="textTitleEditText">Title</string>
     <string name="textDescriptionEditText">Description</string>
     <string name="save">Save</string>
+    <string name="textEmojiEditText">Insert an Emoji</string>
 </resources>

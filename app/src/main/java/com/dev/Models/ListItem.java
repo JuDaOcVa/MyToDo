@@ -4,14 +4,16 @@ public class ListItem {
     private int id;
     private String title;
     private String description;
+    private String emoji;
     private int check;
     private String fecha;
     private String hora;
 
-    public ListItem(int id, String title, String description, int check, String fecha, String hora) {
+    public ListItem(int id, String title, String description, String emoji, int check, String fecha, String hora) {
         this.id = id;
         this.title = title;
         this.description = description;
+        this.emoji = emoji;
         this.check = check;
         this.fecha = fecha;
         this.hora = hora;
@@ -44,6 +46,14 @@ public class ListItem {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public void setEmoji(String emoji) {
+        this.emoji = emoji;
     }
 
     public String getFecha() {

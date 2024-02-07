@@ -77,6 +77,22 @@
         android:layout_weight="0.5"
         android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/textviewEmoji"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:textSize="@dimen/_15ssp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.5"
+        android:orientation="vertical">
+
         <ImageButton
             android:id="@+id/btn_edit"
             android:layout_width="wrap_content"

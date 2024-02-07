@@ -1,9 +1,15 @@
 package com.dev.ToDo;
 
+import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG;
+import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT;
+
 import android.app.Dialog;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +19,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -24,8 +32,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.dev.Db.DatabaseManager;
 import com.dev.Models.ListItem;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItemActionListener, ListItemAdapter.OnCheckBoxChangeListener {
     private static ArrayList<ListItem> itemList;
@@ -33,6 +44,7 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
     public RecyclerView recyclerView;
     public static EditText editTextTitle;
     public static EditText editTextDescription;
+    public static EditText editTextEmoji;
     public static Button btnSave;
     public static ImageButton addButton;
 
@@ -68,9 +80,9 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         });
 //        itemList = loadItemListFromDatabase();
         ArrayList<ListItem> list = new ArrayList<>();
-        ListItem item = new ListItem(1, "TAREA 1", "Realizar tarea 1", 0, "13-10-2023", "12:18:00");
+        ListItem item = new ListItem(1, "TAREA 1", "Realizar tarea 1", "", 0, "13-10-2023", "12:18:00");
         list.add(0, item);
-        ListItem item2 = new ListItem(2, "TAREA 2", "Realizar tarea 2", 0, "13-10-2023", "12:20:00");
+        ListItem item2 = new ListItem(2, "TAREA 2", "Realizar tarea 2", "", 0, "13-10-2023", "12:20:00");
         list.add(1, item2);
         itemList = list;
         recyclerView = view.findViewById(R.id.recyclerList);
@@ -102,10 +114,38 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         dialog.show();
         editTextTitle = dialog.findViewById(R.id.editTextTitle);
         editTextDescription = dialog.findViewById(R.id.editTextDescription);
+        editTextEmoji = dialog.findViewById(R.id.editTextEmoji);
+        editTextEmoji.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!isValidEmojiInput(s.toString())) {
+                    editTextEmoji.setError("Only emojis allowed");
+                    return;
+                } else {
+                    editTextEmoji.setError(null);
+                }
+            }
+        });
         if (pos >= 0) {
             ListItem item = itemList.get(pos);
             editTextTitle.setText(item.getTitle());
             editTextDescription.setText(item.getDescription());
+        }
+    }
+
+    private static boolean isValidEmojiInput(String input) {
+        Pattern emojiPattern = Pattern.compile("[\\p{So}]");
+        Matcher emojiMatcher = emojiPattern.matcher(input);
+        return emojiMatcher.find();
+    }
+
+    private abstract class SimpleTextWatcher implements TextWatcher {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
         }
     }
 
@@ -123,8 +163,8 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
                     int check = cursor.getInt(cursor.getColumnIndex("estado"));
                     String fecha = cursor.getString(cursor.getColumnIndex("fecha"));
                     String hora = cursor.getString(cursor.getColumnIndex("hora"));
-                    ListItem listItem = new ListItem(id, title, description, check, fecha, hora);
-                    itemList.add(listItem);
+                    // ListItem listItem = new ListItem(id, title, description, check, fecha, hora);
+                    // itemList.add(listItem);
                 } while (cursor.moveToNext());
             }
             cursor.close();
@@ -144,6 +184,8 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         if (viewHolder != null) {
             LinearLayout listItemLayout = viewHolder.itemView.findViewById(R.id.yourLinearLayoutId);
             int colorPrimary = ContextCompat.getColor(requireContext(), R.color.primary);
+            int colorPictonBlue = ContextCompat.getColor(requireContext(), R.color.picton_blue);
+            int colorBlack = ContextCompat.getColor(requireContext(), R.color.black);
             int colorWhite = ContextCompat.getColor(requireContext(), R.color.white);
             int alpha = (int) (255 * 0.6);
             int backgroundColor = (newCheck == 1) ? ColorUtils.setAlphaComponent(colorPrimary, alpha) : colorWhite;
@@ -152,6 +194,10 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
             gradientDrawable.setStroke((int) getResources().getDimension(com.intuit.sdp.R.dimen._3sdp), colorPrimary);
             gradientDrawable.setColor(backgroundColor);
             listItemLayout.setBackground(gradientDrawable);
+            TextView textviewTitle = viewHolder.itemView.findViewById(R.id.textviewTitle);
+            TextView textviewDescription = viewHolder.itemView.findViewById(R.id.textviewDescription);
+            textviewTitle.setTextColor((newCheck == 1) ? colorWhite : colorPictonBlue);
+            textviewDescription.setTextColor((newCheck == 1) ? colorWhite : colorBlack);
         }
     }
 
@@ -160,21 +206,30 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         ListItem listItem;
         String title = editTextTitle.getText().toString();
         String description = editTextDescription.getText().toString();
-        if (position < 0) {
-            System.out.println("ENTRA A GUARDAR DE CERO=======>");
-            listItem = new ListItem(3, title, description, 0, "13-10-2023", "12:18:00");
-            itemList.add(listItem);
-            adapter.notifyDataSetChanged();
+        String emoji = editTextEmoji.getText().toString();
+        if (!isValidEmojiInput(emoji)) {
+            editTextEmoji.setError("Only emojis allowed");
+        } else if (title.isEmpty() || description.isEmpty()) {
+            Toast.makeText(btnSave.getContext(), "Title and description can't be empty", Toast.LENGTH_LONG).show();
         } else {
-            System.out.println("ENTRA A GUARDAR UNO CREADO=========>");
-            listItem = itemList.get(position);
-            listItem.setTitle(title);
-            listItem.setDescription(description);
-            itemList.set(position, listItem);
-            adapter.notifyItemChanged(position);
+            if (position < 0) {
+                System.out.println("ENTRA A GUARDAR DE CERO=======>");
+                listItem = new ListItem(3, title, description, emoji, 0, "13-10-2023", "12:18:00");
+                itemList.add(listItem);
+                adapter.notifyDataSetChanged();
+            } else {
+                System.out.println("ENTRA A GUARDAR UNO CREADO=========>");
+                listItem = itemList.get(position);
+                listItem.setTitle(title);
+                listItem.setDescription(description);
+                listItem.setEmoji(emoji);
+                itemList.set(position, listItem);
+                adapter.notifyItemChanged(position);
+            }
         }
+    }
        /* DatabaseManager dbManager = new DatabaseManager();
         dbManager.open();
         dbManager.close();*/
-    }
 }
+

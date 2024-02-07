@@ -50,6 +50,7 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
         ListItem listItem = itemList.get(position);
         holder.titleTextView.setText(listItem.getTitle());
         holder.descriptionTextView.setText(listItem.getDescription());
+        holder.emojiTextView.setText(listItem.getEmoji());
 
         // Configura el estado del checkbox
         if (listItem.getCheck() == 1) {
@@ -96,6 +97,7 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
         public TextView idTextView;
         public TextView titleTextView;
         public TextView descriptionTextView;
+        public TextView emojiTextView;
         public ImageButton editImageButton;
         public ImageButton deleteImageButton;
         public CheckBox checkBox;
@@ -105,6 +107,7 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
             idTextView = itemView.findViewById(R.id.textviewId);
             titleTextView = itemView.findViewById(R.id.textviewTitle);
             descriptionTextView = itemView.findViewById(R.id.textviewDescription);
+            emojiTextView = itemView.findViewById(R.id.textviewEmoji);
             descriptionTextView.setSelected(true);
             editImageButton = itemView.findViewById(R.id.btn_edit);
             deleteImageButton = itemView.findViewById(R.id.btn_delete);
