@@ -3,6 +3,7 @@ package com.dev.ToDo;
 import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG;
 import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
@@ -30,11 +31,15 @@ import androidx.lifecycle.viewmodel.CreationExtras;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.dev.Db.DatabaseHelper;
 import com.dev.Db.DatabaseManager;
 import com.dev.Models.ListItem;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,24 +53,26 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
     public static Button btnSave;
     public static ImageButton addButton;
 
+    private void loadItemsFromDatabase() {
+        itemList = loadItemListFromDatabase();
+        adapter = new ListItemAdapter(requireContext(), itemList, this, this, this);
+        recyclerView.setAdapter(adapter);
+    }
+
     @Override
     public void onEditClick(int position) {
-        System.out.println("EDITAR RECIBE POS: " + position);
-        System.out.println("EDITAR ID: " + itemList.get(position).getId());
         openCustomDialog(position);
     }
 
     @Override
     public void onDeleteClick(int position) {
-        System.out.println("ELIMINAR RECIBE POS: " + position);
-        System.out.println("ELIMINAR ID: " + itemList.get(position).getId());
-        /*DatabaseManager dbManager = new DatabaseManager();
-        dbManager.open();*/
-        // dbManager.delete(listItem.getId());
+        DatabaseManager dbManager = new DatabaseManager(requireContext());
+        dbManager.open();
+        dbManager.delete(itemList.get(position).getId());
         itemList.remove(position);
         adapter.notifyItemRemoved(position);
         adapter.notifyItemRangeChanged(position, itemList.size());
-        //dbManager.close();
+        dbManager.close();
     }
 
     @Override
@@ -78,17 +85,9 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
                 openCustomDialog(-1);
             }
         });
-//        itemList = loadItemListFromDatabase();
-        ArrayList<ListItem> list = new ArrayList<>();
-        ListItem item = new ListItem(1, "TAREA 1", "Realizar tarea 1", "", 0, "13-10-2023", "12:18:00");
-        list.add(0, item);
-        ListItem item2 = new ListItem(2, "TAREA 2", "Realizar tarea 2", "", 0, "13-10-2023", "12:20:00");
-        list.add(1, item2);
-        itemList = list;
         recyclerView = view.findViewById(R.id.recyclerList);
-        adapter = new ListItemAdapter(requireContext(), itemList, this, this);
+        loadItemsFromDatabase();
         recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
-        recyclerView.setAdapter(adapter);
         return view;
     }
 
@@ -130,16 +129,22 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
             ListItem item = itemList.get(pos);
             editTextTitle.setText(item.getTitle());
             editTextDescription.setText(item.getDescription());
+            editTextEmoji.setText(item.getEmoji());
         }
     }
 
     private static boolean isValidEmojiInput(String input) {
-        Pattern emojiPattern = Pattern.compile("[\\p{So}]");
-        Matcher emojiMatcher = emojiPattern.matcher(input);
-        return emojiMatcher.find();
+        Pattern emojiPattern = Pattern.compile("[\\p{So}\\p{Cn}]");
+        String[] symbols = input.split("");
+        for (String symbol : symbols) {
+            if (!emojiPattern.matcher(symbol).matches()) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    private abstract class SimpleTextWatcher implements TextWatcher {
+    private abstract static class SimpleTextWatcher implements TextWatcher {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         }
@@ -151,20 +156,34 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
 
     private ArrayList<ListItem> loadItemListFromDatabase() {
         ArrayList<ListItem> itemList = new ArrayList<>();
-        DatabaseManager dbManager = new DatabaseManager();
+        DatabaseManager dbManager = new DatabaseManager(this.getContext());
         dbManager.open();
         Cursor cursor = dbManager.fetch();
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
-                    int id = cursor.getInt(cursor.getColumnIndex("_id"));
-                    String title = cursor.getString(cursor.getColumnIndex("title"));
-                    String description = cursor.getString(cursor.getColumnIndex("description"));
-                    int check = cursor.getInt(cursor.getColumnIndex("estado"));
-                    String fecha = cursor.getString(cursor.getColumnIndex("fecha"));
-                    String hora = cursor.getString(cursor.getColumnIndex("hora"));
-                    // ListItem listItem = new ListItem(id, title, description, check, fecha, hora);
-                    // itemList.add(listItem);
+                    int idIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_ID);
+                    int titleIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_TITLE);
+                    int descriptionIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_DESCRIPTION);
+                    int emojiIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_EMOJI);
+                    int checkIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_IS_CHECK);
+                    int fechaIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_FECHA);
+                    int horaIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_HORA);
+
+                    if (idIndex != -1 && titleIndex != -1 && descriptionIndex != -1 && emojiIndex != -1 && fechaIndex != -1 && horaIndex != -1) {
+                        int id = cursor.getInt(idIndex);
+                        String title = cursor.getString(titleIndex);
+                        String description = cursor.getString(descriptionIndex);
+                        String emoji = cursor.getString(emojiIndex);
+                        int check = cursor.getInt(checkIndex); // Aquí se obtiene el valor de check de la base de datos
+                        String fecha = cursor.getString(fechaIndex);
+                        String hora = cursor.getString(horaIndex);
+                        ListItem listItem = new ListItem(id, title, description, emoji, check, fecha, hora); // Aquí se pasa el valor de check al constructor
+                        itemList.add(listItem);
+                        if (check == 1) {
+                            applyCheckState(itemList.size() - 1, check);
+                        }
+                    }
                 } while (cursor.moveToNext());
             }
             cursor.close();
@@ -179,57 +198,77 @@ public class ListToDoFragment extends Fragment implements ListItemAdapter.OnItem
         return super.getDefaultViewModelCreationExtras();
     }
 
-    public void onCheckBoxChange(int position, int newCheck) {
-        RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(position);
-        if (viewHolder != null) {
-            LinearLayout listItemLayout = viewHolder.itemView.findViewById(R.id.yourLinearLayoutId);
-            int colorPrimary = ContextCompat.getColor(requireContext(), R.color.primary);
-            int colorPictonBlue = ContextCompat.getColor(requireContext(), R.color.picton_blue);
-            int colorBlack = ContextCompat.getColor(requireContext(), R.color.black);
-            int colorWhite = ContextCompat.getColor(requireContext(), R.color.white);
-            int alpha = (int) (255 * 0.6);
-            int backgroundColor = (newCheck == 1) ? ColorUtils.setAlphaComponent(colorPrimary, alpha) : colorWhite;
-            GradientDrawable gradientDrawable = new GradientDrawable();
-            gradientDrawable.setCornerRadius(getResources().getDimension(com.intuit.sdp.R.dimen._10sdp));
-            gradientDrawable.setStroke((int) getResources().getDimension(com.intuit.sdp.R.dimen._3sdp), colorPrimary);
-            gradientDrawable.setColor(backgroundColor);
-            listItemLayout.setBackground(gradientDrawable);
-            TextView textviewTitle = viewHolder.itemView.findViewById(R.id.textviewTitle);
-            TextView textviewDescription = viewHolder.itemView.findViewById(R.id.textviewDescription);
-            textviewTitle.setTextColor((newCheck == 1) ? colorWhite : colorPictonBlue);
-            textviewDescription.setTextColor((newCheck == 1) ? colorWhite : colorBlack);
+    public void applyCheckState(int position, int newCheck) {
+        if (recyclerView != null) {
+            RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(position);
+            if (viewHolder != null) {
+                LinearLayout listItemLayout = viewHolder.itemView.findViewById(R.id.yourLinearLayoutId);
+                int colorPrimary = ContextCompat.getColor(requireContext(), R.color.primary);
+                int colorPictonBlue = ContextCompat.getColor(requireContext(), R.color.picton_blue);
+                int colorBlack = ContextCompat.getColor(requireContext(), R.color.black);
+                int colorWhite = ContextCompat.getColor(requireContext(), R.color.white);
+                int alpha = (int) (255 * 0.6);
+                int backgroundColor = (newCheck == 1) ? ColorUtils.setAlphaComponent(colorPrimary, alpha) : colorWhite;
+                GradientDrawable gradientDrawable = new GradientDrawable();
+                gradientDrawable.setCornerRadius(getResources().getDimension(com.intuit.sdp.R.dimen._10sdp));
+                gradientDrawable.setStroke((int) getResources().getDimension(com.intuit.sdp.R.dimen._3sdp), colorPrimary);
+                gradientDrawable.setColor(backgroundColor);
+                listItemLayout.setBackground(gradientDrawable);
+                TextView textviewTitle = viewHolder.itemView.findViewById(R.id.textviewTitle);
+                TextView textviewDescription = viewHolder.itemView.findViewById(R.id.textviewDescription);
+                textviewTitle.setTextColor((newCheck == 1) ? colorWhite : colorPictonBlue);
+                textviewDescription.setTextColor((newCheck == 1) ? colorWhite : colorBlack);
+            }
         }
     }
 
+    public void onCheckBoxChange(int position, int newCheck) {
+        applyCheckState(position, newCheck);
+        ListItem listItem = itemList.get(position);
+        listItem.setCheck(newCheck);
+        DatabaseManager dbManager = new DatabaseManager(requireContext());
+        dbManager.open();
+        dbManager.update(listItem);
+        dbManager.close();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
     public static void onSaveClick(int position) {
-        System.out.println("SAVE====>" + position);
         ListItem listItem;
         String title = editTextTitle.getText().toString();
         String description = editTextDescription.getText().toString();
         String emoji = editTextEmoji.getText().toString();
-        if (!isValidEmojiInput(emoji)) {
-            editTextEmoji.setError("Only emojis allowed");
-        } else if (title.isEmpty() || description.isEmpty()) {
+        if(!emoji.isEmpty()) {
+            if (!isValidEmojiInput(emoji)) {
+                editTextEmoji.setError("Only emojis allowed");
+            }
+        }
+        if (title.isEmpty() || description.isEmpty()) {
             Toast.makeText(btnSave.getContext(), "Title and description can't be empty", Toast.LENGTH_LONG).show();
         } else {
+            DatabaseManager dbManager = new DatabaseManager(btnSave.getContext());
+            dbManager.open();
+            Calendar calendar = Calendar.getInstance();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+            String fecha = dateFormat.format(calendar.getTime());
+            String hora = timeFormat.format(calendar.getTime());
             if (position < 0) {
-                System.out.println("ENTRA A GUARDAR DE CERO=======>");
-                listItem = new ListItem(3, title, description, emoji, 0, "13-10-2023", "12:18:00");
+                listItem = new ListItem(0, title, description, emoji, 0, fecha, hora);
+                dbManager.insert(listItem);
                 itemList.add(listItem);
                 adapter.notifyDataSetChanged();
             } else {
-                System.out.println("ENTRA A GUARDAR UNO CREADO=========>");
                 listItem = itemList.get(position);
                 listItem.setTitle(title);
                 listItem.setDescription(description);
                 listItem.setEmoji(emoji);
+                dbManager.update(listItem);
                 itemList.set(position, listItem);
                 adapter.notifyItemChanged(position);
             }
+            dbManager.close();
         }
     }
-       /* DatabaseManager dbManager = new DatabaseManager();
-        dbManager.open();
-        dbManager.close();*/
 }
 

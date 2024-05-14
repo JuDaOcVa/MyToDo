@@ -1,5 +1,6 @@
 package com.dev.ToDo;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dev.Models.ListItem;
@@ -21,6 +23,7 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
     private List<ListItem> itemList;
     private OnItemActionListener itemActionListener;
     private OnCheckBoxChangeListener checkBoxChangeListener;
+    private ListToDoFragment listToDoFragment;
 
     public interface OnItemActionListener {
         void onEditClick(int position);
@@ -32,11 +35,12 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
         void onCheckBoxChange(int position, int newCheck);
     }
 
-    public ListItemAdapter(Context context, List<ListItem> itemList, OnItemActionListener itemActionListener, OnCheckBoxChangeListener checkBoxChangeListener) {
+    public ListItemAdapter(Context context, List<ListItem> itemList, OnItemActionListener itemActionListener, OnCheckBoxChangeListener checkBoxChangeListener,ListToDoFragment listToDoFragment) {
         this.context = context;
         this.itemList = itemList;
         this.itemActionListener = itemActionListener;
         this.checkBoxChangeListener = checkBoxChangeListener;
+        this.listToDoFragment = listToDoFragment;
     }
 
     @Override
@@ -46,15 +50,14 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         ListItem listItem = itemList.get(position);
-        holder.titleTextView.setText(listItem.getTitle());
-        holder.descriptionTextView.setText(listItem.getDescription());
-        holder.emojiTextView.setText(listItem.getEmoji());
+        holder.bind(listItem);
+        listToDoFragment.applyCheckState(position, listItem.getCheck());
 
         // Configura el estado del checkbox
         if (listItem.getCheck() == 1) {
-            holder.checkBox.setChecked(true);
+            listToDoFragment.applyCheckState(position, listItem.getCheck());
         } else {
             holder.checkBox.setChecked(false);
         }
@@ -112,6 +115,12 @@ public class ListItemAdapter extends RecyclerView.Adapter<ListItemAdapter.ViewHo
             editImageButton = itemView.findViewById(R.id.btn_edit);
             deleteImageButton = itemView.findViewById(R.id.btn_delete);
             checkBox = itemView.findViewById(R.id.round_checkbox);
+        }
+        public void bind(ListItem listItem) {
+            titleTextView.setText(listItem.getTitle());
+            descriptionTextView.setText(listItem.getDescription());
+            emojiTextView.setText(listItem.getEmoji());
+            checkBox.setChecked(listItem.getCheck() == 1);
         }
     }
 }
